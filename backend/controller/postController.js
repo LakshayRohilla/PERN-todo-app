@@ -4,19 +4,20 @@ const User = require('../models/userModel'); // Assuming you might need user dat
 // Function to create a new post
 const createPost = async (req, res, next) => {
   try {
-    const { title, content, userId } = req.body; // here we must user username instead of userId
+    const { title, content, username } = req.body; // Extract username from the request body
 
-    // Validate userId (optional, if you want to ensure the user exists)
-    const user = await User.findByPk(userId); // here we must user username
+    // Validate username and find the user
+    const user = await User.findOne({ where: { username } }); // Find user by username
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Cant create a post as user does not found!!!' });
     }
 
     // Create a new post
     const post = await Post.create({
       title,
       content,
-      userId,
+      userId: user.id, // Use the user's ID to associate the post
+      username: user.username, // Store the username in the post
     });
 
     // Respond with the created post
@@ -26,7 +27,8 @@ const createPost = async (req, res, next) => {
         id: post.id,
         title: post.title,
         content: post.content,
-        userId: post.userId, // here we must user username
+        userId: user.id, 
+        username: user.username, 
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
       },
